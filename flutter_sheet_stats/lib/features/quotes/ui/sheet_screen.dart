@@ -9,14 +9,12 @@ import 'package:flutter_sheet_stats/features/quotes/repository/sheet_repository.
 import 'package:flutter_sheet_stats/features/quotes/ui/widgets/sheet_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:json_diff/json_diff.dart';
-
 class SheetScreen extends StatelessWidget {
   const SheetScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var test;
+    var oldModel;
 
     return Scaffold(
       appBar: AppBar(
@@ -41,26 +39,29 @@ class SheetScreen extends StatelessWidget {
                       children: [
                         Text(
                           state.message,
-                          style: const TextStyle(fontSize: 16, color: Colors.red),
+                          style:
+                              const TextStyle(fontSize: 16, color: Colors.red),
                         ),
                         ElevatedButton(
                           onPressed: () {
                             context.read<SheetBloc>().add(LoadSheetEvent());
                           },
                           child: const Text('Refresh'),
-                          style: ElevatedButton.styleFrom(primary: Colors.black),
+                          style:
+                              ElevatedButton.styleFrom(primary: Colors.black),
                         )
                       ],
                     ),
                   );
                 } else if (state is SheetLoadedState) {
-                  test ??= state.model;
+                  oldModel ??= state.model;
+                  //print(state.model.toJson().toString());
                   return SheetWidget(
                     model: state.model,
-                    oldModel: test,
+                    oldModel: oldModel,
                     onPressed: () {
                       context.read<SheetBloc>().add(LoadSheetEvent());
-                      test = state.model;
+                      oldModel = state.model;
                     },
                   );
                 }
@@ -70,21 +71,4 @@ class SheetScreen extends StatelessWidget {
       ),
     );
   }
-
-  setRows(var json) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('rows', jsonEncode(json));
-  }
-
-  getRows() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getString('rows') != null) {
-      Map test = jsonDecode(prefs.getString('rows')!);
-      print(test.toString());
-    }
-    return {};
-  }
-
 }
-
-
