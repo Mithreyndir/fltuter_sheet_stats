@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 import '../../../../models/sheet_model.dart';
+import 'package:json_diff/json_diff.dart';
 
 class SheetWidget extends StatelessWidget {
   SheetWidget(
@@ -17,9 +17,27 @@ class SheetWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if sheet has changed
+    print(oldModel == model);
+
+    // Create Json differ object
+    final differ = JsonDiffer.fromJson(model.toJson(), oldModel.toJson());
+    DiffNode diff = differ.diff();
+    String data = diff.node.values.toString();
+
+    // Print difference between two sheets
+    print(data);
+
+    // Create data for pie chart
+    int added = data.split('Added').length;
+    int removed = data.split('Removed').length;
+    int edited = data.split('+ "').length;
+    print("--------");
+
     final List<ChartData> chartData = [
-      ChartData('Sheet', model.rows!.length.toDouble()),
-      ChartData('OldSheet', oldModel.rows!.length.toDouble()),
+      ChartData('added', added.toDouble()),
+      ChartData('removed', removed.toDouble()),
+      ChartData('edited', edited.toDouble()),
     ];
 
     return Column(
@@ -39,22 +57,6 @@ class SheetWidget extends StatelessWidget {
                     style: const TextStyle(fontSize: 20),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 30.0),
-                  child: Text(
-                    'New rows: ' + model.rows!.length.toString(),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 30.0),
-                  child: Text(
-                    'old rows: ' + oldModel.rows!.length.toString(),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                ),
                 SfCircularChart(series: <CircularSeries>[
                   PieSeries<ChartData, String>(
                     dataSource: chartData,
@@ -62,11 +64,35 @@ class SheetWidget extends StatelessWidget {
                     yValueMapper: (ChartData data, _) => data.y,
                   )
                 ]),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 15.0),
+                  child: Text(
+                    'Added: ' + added.toString(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 15.0),
+                  child: Text(
+                    'Deleted: ' + removed.toString(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 15.0),
+                  child: Text(
+                    'Changed: ' + edited.toString(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
                 ElevatedButton(
                   onPressed: onPressed,
                   child: const Text('Refresh'),
                   style: ElevatedButton.styleFrom(primary: Colors.black),
-                )
+                ),
               ],
             ),
           ),
